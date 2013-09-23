@@ -1,4 +1,3 @@
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,13 +10,6 @@ import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.LoginException;
 
 import com.sun.security.auth.module.Krb5LoginModule;
-
-/**
- * @(#)UserLoginHelper.java, 2013-9-3. 
- * 
- * Copyright 2013 Youdao, Inc. All rights reserved.
- * YODAO PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
 
 /**
  * @author zhangduo
