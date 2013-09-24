@@ -122,6 +122,7 @@ public class DigestMD5Authentication {
         byte[] response = client.evaluateChallenge(challenge);
         challenge = server.evaluateResponse(response);
         System.out.println(server.isComplete());
+        System.out.println(new String(challenge));
         response = client.evaluateChallenge(challenge);
         System.out.println(client.isComplete());
     }
