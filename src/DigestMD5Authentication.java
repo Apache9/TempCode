@@ -78,7 +78,7 @@ public class DigestMD5Authentication {
                 });
         SaslClient client = Sasl.createSaslClient(new String[] {
             "DIGEST-MD5"
-        }, "zhangduo", "ODFS", "nc008", SASL_PROPS, new CallbackHandler() {
+        }, null, "ODFS", "nc008", SASL_PROPS, new CallbackHandler() {
 
             @Override
             public void handle(Callback[] callbacks) throws IOException,
