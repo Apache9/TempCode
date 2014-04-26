@@ -1,3 +1,5 @@
+package com.github.apache9.auth;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,8 +84,8 @@ public class UserLoginHelper {
 
     public static void main(String[] args) throws Exception {
         Subject subject = loginFromKeyTab(args[0], args[1]);
-        KerberosTicket ticket = subject.getPrivateCredentials(
-                KerberosTicket.class).iterator().next();
+        KerberosTicket ticket = subject
+                .getPrivateCredentials(KerberosTicket.class).iterator().next();
         System.out.println(ticket);
     }
 }

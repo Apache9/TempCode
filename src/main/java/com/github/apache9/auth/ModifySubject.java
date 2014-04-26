@@ -1,7 +1,8 @@
+package com.github.apache9.auth;
+
 import java.security.AccessController;
 import java.security.Principal;
 import java.security.PrivilegedAction;
-import java.util.Arrays;
 
 import javax.security.auth.Subject;
 
@@ -36,9 +37,12 @@ public class ModifySubject {
 
             @Override
             public Object run() {
-                Subject subject = Subject.getSubject(AccessController.getContext());
-                String name = subject.getPrincipals(NamePrincipal.class).iterator().next().getName();
-                char[] password = subject.getPrivateCredentials(char[].class).iterator().next();
+                Subject subject = Subject.getSubject(AccessController
+                        .getContext());
+                String name = subject.getPrincipals(NamePrincipal.class)
+                        .iterator().next().getName();
+                char[] password = subject.getPrivateCredentials(char[].class)
+                        .iterator().next();
                 System.out.println(name + ": " + String.valueOf(password));
                 return null;
             }

@@ -1,3 +1,5 @@
+package com.github.apache9.auth;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,8 +57,10 @@ public class DigestMD5Authentication {
                             }
                         }
                         if (pc != null) {
-                            System.out.println("SASL server DIGEST-MD5 callback: setting password "
-                                    + "for client: " + nc.getDefaultName());
+                            System.out
+                                    .println("SASL server DIGEST-MD5 callback: setting password "
+                                            + "for client: "
+                                            + nc.getDefaultName());
                             pc.setPassword(new char[] {
                                 'a'
                             });
@@ -70,7 +74,8 @@ public class DigestMD5Authentication {
                                 ac.setAuthorized(false);
                             }
                             if (ac.isAuthorized()) {
-                                System.out.println("isAuthorized id:" + authzid);
+                                System.out
+                                        .println("isAuthorized id:" + authzid);
                                 ac.setAuthorizedID(authzid);
                             }
                         }
@@ -101,12 +106,14 @@ public class DigestMD5Authentication {
                     }
                 }
                 if (nc != null) {
-                    System.out.println("SASL client callback: setting username: "
-                            + "zhangduo");
+                    System.out
+                            .println("SASL client callback: setting username: "
+                                    + "zhangduo");
                     nc.setName("zhangduo");
                 }
                 if (pc != null) {
-                    System.out.println("SASL client callback: setting userPassword");
+                    System.out
+                            .println("SASL client callback: setting userPassword");
                     pc.setPassword(new char[] {
                         'a'
                     });

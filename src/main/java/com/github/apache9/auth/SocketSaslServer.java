@@ -1,3 +1,5 @@
+package com.github.apache9.auth;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -94,14 +96,15 @@ public class SocketSaslServer {
                     @Override
                     public Object run() throws IOException {
                         SaslServer saslServer = Sasl.createSaslServer("GSSAPI",
-                                "ODFS",
-                                InetAddress.getLocalHost().getHostName(),
-                                SASL_PROPS, new SaslGssCallbackHandler());
+                                "ODFS", InetAddress.getLocalHost()
+                                        .getHostName(), SASL_PROPS,
+                                new SaslGssCallbackHandler());
                         for (;;) {
                             byte[] token = receive();
                             System.err.println("Receive token: "
                                     + UserLoginHelper.toHex(token));
-                            byte[] challenge = saslServer.evaluateResponse(token);
+                            byte[] challenge = saslServer
+                                    .evaluateResponse(token);
                             System.out.println("Generate challenge: "
                                     + UserLoginHelper.toHex(challenge));
                             if (saslServer.isComplete()) {

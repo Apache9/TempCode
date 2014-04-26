@@ -1,3 +1,5 @@
+package com.github.apache9.auth;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

@@ -1,3 +1,5 @@
+package com.github.apache9.auth;
+
 import java.io.UnsupportedEncodingException;
 import java.security.Provider;
 import java.security.Security;
