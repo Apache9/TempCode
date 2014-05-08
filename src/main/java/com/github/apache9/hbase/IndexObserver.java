@@ -31,6 +31,10 @@ public class IndexObserver extends BaseRegionObserver {
         if (!rowKey.contains("_data_")) {
             return;
         }
+        if (edit.getKeyValues().isEmpty()) {
+            return;
+        }
+        long timestamp = edit.getKeyValues().get(0).getTimestamp();
         HRegion region = e.getEnvironment().getRegion();
         HTableDescriptor desc = region.getTableDesc();
         int prefixLength = Integer.parseInt(desc
@@ -46,8 +50,9 @@ public class IndexObserver extends BaseRegionObserver {
                         cell.getValueOffset(), cell.getValueLength());
                 Put indexPut = new Put(Bytes.toBytes(prefix + "_index_" + cq
                         + "_" + cv));
-                indexPut.add(entry.getKey(), Bytes.toBytes("pk"),
-                        put.getTimeStamp(), Bytes.toBytes(primaryKey));
+
+                indexPut.add(entry.getKey(), Bytes.toBytes("pk"), timestamp,
+                        Bytes.toBytes(primaryKey));
                 indexPut.setDurability(Durability.SKIP_WAL);
                 region.put(indexPut);
             }

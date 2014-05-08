@@ -23,6 +23,7 @@ public class HBaseTest {
         HTableDescriptor desc = new HTableDescriptor(
                 TableName.valueOf("contacts"));
         desc.addCoprocessor(IndexObserver.class.getName());
+        desc.addCoprocessor(IndexEndPoint.class.getName());
         desc.setValue(HTableDescriptor.SPLIT_POLICY,
                 KeyPrefixRegionSplitPolicy.class.getName());
         desc.setValue(KeyPrefixRegionSplitPolicy.PREFIX_LENGTH_KEY, "4");
