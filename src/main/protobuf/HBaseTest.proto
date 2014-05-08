@@ -1,0 +1,12 @@
+import "Client.proto";
+
+option java_package = "com.github.apache9.hbase";  
+option java_outer_classname = "HBaseTestProtos";
+option java_generic_services = true;
+option java_generate_equals_and_hash = true;
+option optimize_for = SPEED;
+
+service IndexService {
+    rpc get(GetRequest)  
+        returns (GetResponse);  
+}
