@@ -71,7 +71,6 @@ public class IndexEndPoint extends IndexService implements CoprocessorService,
             String textRow = Bytes.toString(row).substring(0, prefixLength)
                     + "_data_"
                     + Bytes.toString(versionAndPrimaryKey.getValue());
-            System.out.println(textRow);
             Get dataGet = new Get(Bytes.toBytes(textRow));
             dataGet.setTimeStamp(versionAndPrimaryKey.getKey());
             for (byte[] qualifier: originGet.getFamilyMap().get(family)) {
