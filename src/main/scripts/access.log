@@ -1,0 +1,11 @@
+192.168.253.201 -  -  [22/Jun/2014:16:20:39 +0800] "GET /test/stats?uid=12345678 HTTP/1.0" 200 174 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 178
+192.168.253.202 -  -  [22/Jun/2014:16:34:36 +0800] "GET /test/stats?uid=444444 HTTP/1.0" 200 143 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 225
+192.168.253.203 -  -  [22/Jun/2014:16:34:45 +0800] "GET /test/stats?uid=432156 HTTP/1.0" 200 143 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 130
+192.168.253.204 -  -  [22/Jun/2014:16:34:48 +0800] "GET /test/stats?uid=4325556 HTTP/1.0" 200 144 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 194
+192.168.253.205 -  -  [22/Jun/2014:16:34:57 +0800] "GET /test/stats?uid=6352198 HTTP/1.0" 200 144 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 214
+192.168.253.206 -  -  [22/Jun/2014:16:35:01 +0800] "GET /test/stats?uid=63521798 HTTP/1.0" 200 145 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 170
+192.168.253.207 -  -  [22/Jun/2014:16:35:16 +0800] "GET /test/stats?uid=3256781 HTTP/1.0" 200 144 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 334
+192.168.253.208 -  -  [22/Jun/2014:16:35:20 +0800] "GET /test/stats?uid=32567812 HTTP/1.0" 200 145 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36" 118
+192.168.253.209 -  -  [22/Jun/2014:16:35:52 +0800] "GET /test/stats?uid=4356781 HTTP/1.0" 200 144 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0" 221
+192.168.253.210 -  -  [22/Jun/2014:16:36:22 +0800] "GET /test/stats?uid=87654321 HTTP/1.0" 200 145 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko" 263
+192.168.253.211 -  -  [22/Jun/2014:16:36:25 +0800] "GET /test/stats?uid=87654321 HTTP/1.0" 200 145 "-" "User-Agent	Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" 7
