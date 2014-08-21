@@ -28,26 +28,28 @@ def feed(name, cost):
     heapq.heappush(metric['costs'], Cost(cost))
     lock.release()
 
-parts = [
-    r'(?P<host>\S+)',       # host %h
-    r'\S+',                 # indent %l (unused)
-    r'(?P<user>\S+)',       # user %u
-    r'\[(?P<time>.+)\]',    # time %t
-    r'"(?P<request>.+)"',   # request "%r"
-    r'(?P<status>[0-9]+)',  # status %>s
-    r'(?P<size>\S+)',       # size %b (careful, can be '-')
-    r'"(?P<referer>.*)"',   # referer "%{Referer}i"
-    r'"(?P<agent>.*)"',     # user agent "%{User-agent}i"
-    r'(?P<latency>[0-9]+)', # latency
+access_parts = [
+    r'(?P<host>\S+(, \S+)*)', # host %h
+    r'\S+',                   # indent %l (unused)
+    r'(?P<user>\S+)',         # user %u
+    r'\[(?P<time>.+)\]',      # time %t
+    r'"(?P<request>.+)"',     # request "%r"
+    r'(?P<status>[0-9]+)',    # status %>s
+    r'(?P<size>\S+)',         # size %b (careful, can be '-')
+    r'"(?P<referer>.*)"',     # referer "%{Referer}i"
+    r'"(?P<agent>.*)"',       # user agent "%{User-agent}i"
+    r'(?P<latency>[0-9]+)',   # latency
 ]
 
-pattern = re.compile(r'\s+'.join(parts) + r'\s*\Z')
+pattern = re.compile(r'\s+'.join(access_parts) + r'\s*\Z')
 
 def read_input():
     while True:
         line = sys.stdin.readline().strip()
         global pattern
         matcher = pattern.match(line)
+        if matcher is None:
+            return
         parts = matcher.groupdict()
         name = 'req' # could be parsed from request
         cost = int(parts['latency'])
