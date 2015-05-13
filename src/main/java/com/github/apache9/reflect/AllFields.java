@@ -3,7 +3,10 @@ package com.github.apache9.reflect;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+
+import org.apache.hadoop.hbase.util.Bytes;
 
 /**
  * @author zhangduo
@@ -26,7 +29,12 @@ public class AllFields {
     }
 
     public static void main(String[] args) {
-        System.out.println(Arrays.toString(getAllFields(B.class)));
+        System.out.println(new Date(1384840648000L));
+//        byte[] b = new byte[] {
+//            0, 0, 0, 0, 0, 'h', (byte) 0xAA, 'z'
+//        };
+//        System.out.println(Bytes.toLong(b));
+//        System.out.println(Arrays.toString(getAllFields(B.class)));
     }
 
 }
