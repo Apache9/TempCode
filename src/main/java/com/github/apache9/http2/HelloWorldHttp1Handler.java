@@ -6,7 +6,6 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,6 +15,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpServerUpgradeHandler.UpgradeEvent;
 
 /**
  * @author zhangduo
@@ -49,4 +49,13 @@ public class HelloWorldHttp1Handler extends SimpleChannelInboundHandler<HttpRequ
         cause.printStackTrace();
         ctx.close();
     }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof UpgradeEvent) {
+            ctx.pipeline().remove(this);
+        }
+        super.userEventTriggered(ctx, evt);
+    }
+
 }

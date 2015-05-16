@@ -50,9 +50,8 @@ public class HelloWorldHttp2Handler extends Http2ConnectionHandler {
     }
 
     /**
-     * Handles the cleartext HTTP upgrade event. If an upgrade occurred, sends a
-     * simple response via HTTP/2 on stream 1 (the stream specifically reserved
-     * for cleartext HTTP upgrade).
+     * Handles the cleartext HTTP upgrade event. If an upgrade occurred, sends a simple response via
+     * HTTP/2 on stream 1 (the stream specifically reserved for cleartext HTTP upgrade).
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -69,7 +68,9 @@ public class HelloWorldHttp2Handler extends Http2ConnectionHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
         cause.printStackTrace();
-        ctx.close();
+        if (!(cause instanceof Http2Exception)) {
+            ctx.close();
+        }
     }
 
     private static class SimpleHttp2FrameListener extends Http2FrameAdapter {
@@ -80,8 +81,7 @@ public class HelloWorldHttp2Handler extends Http2ConnectionHandler {
         }
 
         /**
-         * If receive a frame with end-of-stream set, send a pre-canned
-         * response.
+         * If receive a frame with end-of-stream set, send a pre-canned response.
          */
         @Override
         public int onDataRead(ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding,
@@ -94,8 +94,7 @@ public class HelloWorldHttp2Handler extends Http2ConnectionHandler {
         }
 
         /**
-         * If receive a frame with end-of-stream set, send a pre-canned
-         * response.
+         * If receive a frame with end-of-stream set, send a pre-canned response.
          */
         @Override
         public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers,
