@@ -21,6 +21,7 @@
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
+  <id>0.1</id>
   <fileSets>
     <fileSet>
       <directory>assembly/bin</directory>

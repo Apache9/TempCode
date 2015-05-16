@@ -48,7 +48,7 @@ public class Http2ClientInitializer extends ChannelInitializer<Channel> {
     /**
      * A handler that triggers the cleartext upgrade to HTTP/2 by sending an initial HTTP request.
      */
-    private static final class UpgradeRequestHandler extends ChannelInboundHandlerAdapter {
+    private final class UpgradeRequestHandler extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             DefaultFullHttpRequest upgradeRequest = new DefaultFullHttpRequest(
@@ -59,7 +59,8 @@ public class Http2ClientInitializer extends ChannelInitializer<Channel> {
 
             // Done with this handler, remove it from the pipeline.
             ctx.pipeline().remove(this);
-
+            ctx.pipeline().addLast("Http2SettingsHandler", settingsHandler);
+            ctx.pipeline().addLast("HttpResponseHandler", responseHandler);
         }
     }
 
@@ -80,8 +81,6 @@ public class Http2ClientInitializer extends ChannelInitializer<Channel> {
         ch.pipeline().addLast("Http2SourceCodec", sourceCodec);
         ch.pipeline().addLast("Http2UpgradeHandler", upgradeHandler);
         ch.pipeline().addLast("Http2UpgradeRequestHandler", new UpgradeRequestHandler());
-        ch.pipeline().addLast("Http2SettingsHandler", settingsHandler);
-        ch.pipeline().addLast("HttpResponseHandler", responseHandler);
     }
 
     private static Http2FrameReader frameReader() {

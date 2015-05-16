@@ -23,6 +23,9 @@ import java.util.concurrent.TimeUnit;
 public class Http2Client {
 
     public static void main(String[] args) throws Exception {
+        args = new String[] {
+            "192.168.198.248:29581"
+        };
         String addr = args[0];
         String[] hostAndPort = addr.split(":");
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -36,9 +39,9 @@ public class Http2Client {
             Channel channel = bootstrap.connect().syncUninterruptibly().channel();
             System.out.println("Connected to [" + addr + ']');
 
-            initializer.getSettingsHandler().awaitSettings(5, TimeUnit.SECONDS);
+            initializer.getSettingsHandler().awaitSettings(120000, TimeUnit.SECONDS);
 
-            int streamId = 10;
+            int streamId = 11;
 
             URI hostName = URI.create("http://" + addr);
             System.out.println("Send request to [" + addr + "]");

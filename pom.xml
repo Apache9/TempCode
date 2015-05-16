@@ -127,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
+                <version>2.4</version>
                 <configuration>
                     <encoding>${app.encoding}</encoding>
                     <attach>true</attach>
@@ -153,8 +153,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.4</version>
                 <configuration>
-                    <finalName>apache9-test-${app.version}</finalName>
+                    <finalName>apache9-test</finalName>
                     <descriptors>
                         <descriptor>assembly/assembly.xml</descriptor>
                     </descriptors>
