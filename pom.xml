@@ -69,6 +69,12 @@
             <version>1.1.33.Fork2</version>
             <classifier>linux-x86_64</classifier>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
