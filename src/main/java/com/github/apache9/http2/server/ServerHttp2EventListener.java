@@ -1,8 +1,10 @@
 package com.github.apache9.http2.server;
 
+import static io.netty.handler.codec.http2.Http2CodecUtil.CONNECTION_STREAM_ID;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.DefaultHttp2FrameReader;
 import io.netty.handler.codec.http2.DefaultHttp2FrameWriter;
@@ -19,7 +21,10 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2InboundFrameLogger;
 import io.netty.handler.codec.http2.Http2OutboundFrameLogger;
 import io.netty.handler.codec.http2.Http2Stream;
+import io.netty.handler.codec.http2.Http2StreamVisitor;
 import io.netty.handler.logging.LogLevel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.FutureListener;
 
 /**
  * @author zhangduo
@@ -31,14 +36,14 @@ public class ServerHttp2EventListener extends Http2EventAdapter {
 
     private final Channel parentChannel;
 
-    private final ServerHttp2StreamChannelInitializer subChannelInitializer;
+    private final ChannelInitializer<ServerHttp2StreamChannel> subChannelInitializer;
 
     private final Http2Connection conn;
 
     private final PropertyKey subChannelPropKey;
 
     public ServerHttp2EventListener(Channel parentChannel, Http2Connection conn,
-            ServerHttp2StreamChannelInitializer subChannelInitializer) {
+            ChannelInitializer<ServerHttp2StreamChannel> subChannelInitializer) {
         this.parentChannel = parentChannel;
         this.conn = conn;
         this.subChannelInitializer = subChannelInitializer;
@@ -46,10 +51,29 @@ public class ServerHttp2EventListener extends Http2EventAdapter {
     }
 
     @Override
-    public void onStreamActive(Http2Stream stream) {
+    public void onStreamAdded(final Http2Stream stream) {
         ServerHttp2StreamChannel subChannel = new ServerHttp2StreamChannel(parentChannel, stream);
-        subChannelInitializer.initChannel(subChannel);
         stream.setProperty(subChannelPropKey, subChannel);
+        subChannel.pipeline().addFirst(subChannelInitializer);
+        parentChannel.eventLoop().register(subChannel).addListener(new FutureListener<Void>() {
+
+            @Override
+            public void operationComplete(Future<Void> future) throws Exception {
+                if (!future.isSuccess()) {
+                    stream.removeProperty(subChannelPropKey);
+                }
+            }
+
+        });
+    }
+
+    @Override
+    public void onStreamActive(Http2Stream stream) {
+        ServerHttp2StreamChannel subChannel = stream.getProperty(subChannelPropKey);
+        if (subChannel != null) {
+            subChannel.pipeline().fireChannelActive();
+        }
+
     }
 
     @Override
@@ -94,7 +118,7 @@ public class ServerHttp2EventListener extends Http2EventAdapter {
             boolean endOfStream) throws Http2Exception {
         int pendingBytes = data.readableBytes() + padding;
         ServerHttp2StreamChannel subChannel = getSubChannel(streamId);
-        subChannel.writeInbound(data);
+        subChannel.writeInbound(data.retain());
         if (endOfStream) {
             subChannel.closeRemoteSide();
         }
@@ -107,8 +131,28 @@ public class ServerHttp2EventListener extends Http2EventAdapter {
         }
     }
 
+    @Override
+    public void onWindowUpdateRead(ChannelHandlerContext ctx, int streamId, int windowSizeIncrement)
+            throws Http2Exception {
+        if (streamId == CONNECTION_STREAM_ID) {
+            conn.forEachActiveStream(new Http2StreamVisitor() {
+
+                @Override
+                public boolean visit(Http2Stream stream) throws Http2Exception {
+                    ServerHttp2StreamChannel subChannel = stream.getProperty(subChannelPropKey);
+                    if (subChannel != null) {
+                        subChannel.tryWrite();
+                    }
+                    return true;
+                }
+            });
+        } else {
+            getSubChannel(streamId).tryWrite();
+        }
+    }
+
     public static Http2ConnectionHandler create(Channel channel,
-            ServerHttp2StreamChannelInitializer initializer, boolean verbose) {
+            ChannelInitializer<ServerHttp2StreamChannel> initializer, boolean verbose) {
         Http2Connection conn = new DefaultHttp2Connection(true);
         ServerHttp2EventListener listener = new ServerHttp2EventListener(channel, conn, initializer);
         conn.addListener(listener);

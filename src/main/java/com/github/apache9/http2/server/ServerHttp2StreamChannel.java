@@ -17,6 +17,7 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2LocalFlowController;
 import io.netty.handler.codec.http2.Http2RemoteFlowController;
 import io.netty.handler.codec.http2.Http2Stream;
+import io.netty.util.ReferenceCountUtil;
 
 import java.net.SocketAddress;
 import java.nio.channels.ClosedChannelException;
@@ -56,7 +57,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
     private boolean writePending = false;
 
     private enum State {
-        OPEN, HALF_CLOSED_LOCAL, HALF_CLOSED_REMOTE, CLOSED
+        OPEN, HALF_CLOSED_LOCAL, HALF_CLOSED_REMOTE, PRE_CLOSED, CLOSED
     }
 
     private AtomicReference<State> state;
@@ -72,7 +73,6 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
         this.encoder = connHandler.encoder();
         this.config = new DefaultChannelConfig(this);
         this.state = new AtomicReference<ServerHttp2StreamChannel.State>(State.OPEN);
-        parent().eventLoop().register(this);
     }
 
     @Override
@@ -164,7 +164,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
                     if (current == State.CLOSED) {
                         throw new ClosedChannelException();
                     }
-                    State next = current == State.HALF_CLOSED_LOCAL ? State.CLOSED
+                    State next = current == State.HALF_CLOSED_LOCAL ? State.PRE_CLOSED
                             : State.HALF_CLOSED_REMOTE;
                     if (state.compareAndSet(current, next)) {
                         break;
@@ -173,7 +173,6 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
             }
             pipeline().fireChannelRead(msg);
         }
-        pipeline().fireChannelReadComplete();
     }
 
     private boolean canWrite() {
@@ -196,7 +195,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
                         if (current == State.CLOSED) {
                             throw new ClosedChannelException();
                         }
-                        State next = current == State.HALF_CLOSED_REMOTE ? State.CLOSED
+                        State next = current == State.HALF_CLOSED_REMOTE ? State.PRE_CLOSED
                                 : State.HALF_CLOSED_LOCAL;
                         if (state.compareAndSet(current, next)) {
                             break;
@@ -206,13 +205,13 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
                 } else {
                     endOfStream = false;
                 }
+                ReferenceCountUtil.retain(msg);
                 if (msg instanceof Http2Headers) {
                     encoder.writeHeaders(http2ConnHandlerCtx, stream.id(), (Http2Headers) msg, 0,
                             endOfStream, http2ConnHandlerCtx.newPromise());
                 } else if (msg instanceof ByteBuf) {
                     encoder.writeData(http2ConnHandlerCtx, stream.id(), (ByteBuf) msg, 0,
                             endOfStream, http2ConnHandlerCtx.newPromise());
-
                 } else {
                     parent().write(msg);
                 }
@@ -243,7 +242,15 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
         lastInboundMessageAdded = true;
     }
 
+    public boolean remoteSideClosed() {
+        return state.get() == State.HALF_CLOSED_REMOTE;
+    }
+
     public void closeLocalSide() {
         lastOutboundMessageAdded = true;
+    }
+
+    public boolean localSideClosed() {
+        return state.get() == State.HALF_CLOSED_LOCAL;
     }
 }

@@ -15,7 +15,23 @@
     <name>${artifactId}</name>
     <description>Temp Code Base</description>
     <url>https://github.com/Apache9/TempCode</url>
-
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>protoc-plugin</id>
+            <url>https://dl.bintray.com/sergei-ivanov/maven/</url>
+        </pluginRepository>
+    </pluginRepositories>
     <properties>
         <app.encoding>UTF-8</app.encoding>
         <app.version>0.1</app.version>
@@ -70,6 +86,11 @@
             <classifier>linux-x86_64</classifier>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>http2-client</artifactId>
+            <version>9.3.0.M2</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
@@ -92,7 +113,7 @@
             <plugin>
                 <groupId>com.google.protobuf.tools</groupId>
                 <artifactId>maven-protoc-plugin</artifactId>
-                <version>0.3.3</version>
+                <version>0.4.2</version>
                 <configuration>
                     <protocExecutable>protoc-${protoc.version}</protocExecutable>
                     <includes>
