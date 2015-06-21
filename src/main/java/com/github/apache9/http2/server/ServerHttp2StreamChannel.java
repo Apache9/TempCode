@@ -10,6 +10,7 @@ import io.netty.channel.ChannelOutboundBuffer;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultChannelConfig;
 import io.netty.channel.EventLoop;
+import io.netty.handler.codec.UnsupportedMessageTypeException;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
 import io.netty.handler.codec.http2.Http2Error;
@@ -17,7 +18,6 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2LocalFlowController;
 import io.netty.handler.codec.http2.Http2RemoteFlowController;
 import io.netty.handler.codec.http2.Http2Stream;
-import io.netty.util.ReferenceCountUtil;
 
 import java.net.SocketAddress;
 import java.nio.channels.ClosedChannelException;
@@ -182,44 +182,43 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
 
     @Override
     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
-        if (canWrite()) {
-            for (;;) {
-                Object msg = in.current();
-                if (msg == null) {
-                    break;
-                }
-                boolean endOfStream;
-                if (lastOutboundMessageAdded && in.size() == 1) {
-                    for (;;) {
-                        State current = state.get();
-                        if (current == State.CLOSED) {
-                            throw new ClosedChannelException();
-                        }
-                        State next = current == State.HALF_CLOSED_REMOTE ? State.PRE_CLOSED
-                                : State.HALF_CLOSED_LOCAL;
-                        if (state.compareAndSet(current, next)) {
-                            break;
-                        }
-                    }
-                    endOfStream = true;
-                } else {
-                    endOfStream = false;
-                }
-                ReferenceCountUtil.retain(msg);
-                if (msg instanceof Http2Headers) {
-                    encoder.writeHeaders(http2ConnHandlerCtx, stream.id(), (Http2Headers) msg, 0,
-                            endOfStream, http2ConnHandlerCtx.newPromise());
-                } else if (msg instanceof ByteBuf) {
-                    encoder.writeData(http2ConnHandlerCtx, stream.id(), (ByteBuf) msg, 0,
-                            endOfStream, http2ConnHandlerCtx.newPromise());
-                } else {
-                    parent().write(msg);
-                }
-                in.remove();
-            }
-            parent().flush();
-        } else {
+        if (!canWrite()) {
             writePending = true;
+            return;
+        }
+        for (;;) {
+            Object msg = in.current();
+            if (msg == null) {
+                break;
+            }
+            boolean endOfStream;
+            if (lastOutboundMessageAdded && in.size() == 1) {
+                for (;;) {
+                    State current = state.get();
+                    if (current == State.CLOSED) {
+                        throw new ClosedChannelException();
+                    }
+                    State next = current == State.HALF_CLOSED_REMOTE ? State.PRE_CLOSED
+                            : State.HALF_CLOSED_LOCAL;
+                    if (state.compareAndSet(current, next)) {
+                        break;
+                    }
+                }
+                endOfStream = true;
+            } else {
+                endOfStream = false;
+            }
+            if (msg instanceof Http2Headers) {
+                encoder.writeHeaders(http2ConnHandlerCtx, stream.id(), (Http2Headers) msg, 0,
+                        endOfStream, http2ConnHandlerCtx.newPromise());
+            } else if (msg instanceof ByteBuf) {
+                ByteBuf data = (ByteBuf) msg;
+                encoder.writeData(http2ConnHandlerCtx, stream.id(), data.retain(), 0, endOfStream,
+                        http2ConnHandlerCtx.newPromise());
+            } else {
+                throw new UnsupportedMessageTypeException(msg, Http2Headers.class, ByteBuf.class);
+            }
+            in.remove();
         }
     }
 

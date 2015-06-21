@@ -1,7 +1,7 @@
+/**
+ * 
+ */
 package com.github.apache9.http2.server;
-
-import java.util.Iterator;
-import java.util.List;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -17,23 +17,29 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.stream.ChunkedInput;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * @author zhangduo
  */
-public class TestCloseLocalSideChunkedInput extends AbstractTestCloseLocalSide {
+public class TestCloseLocalSideMessage extends AbstractTestCloseLocalSide {
 
     private final class ChunkedHandler extends SimpleChannelInboundHandler<Http2Headers> {
 
         private final List<byte[]> chunkList;
 
+        private final byte[] lastChunk;
+
         public ChunkedHandler(List<byte[]> chunkList) {
-            this.chunkList = chunkList;
+            this.chunkList = chunkList.subList(0, chunkList.size() - 1);
+            this.lastChunk = chunkList.get(chunkList.size() - 1);
         }
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Http2Headers msg) throws Exception {
             ctx.write(new DefaultHttp2Headers().status(HttpResponseStatus.OK.codeAsText()));
-            ctx.writeAndFlush(new CloseLocalSideChunkedInput(new ChunkedInput<ByteBuf>() {
+            ctx.write(new ChunkedInput<ByteBuf>() {
 
                 private Iterator<byte[]> iter = chunkList.iterator();
 
@@ -66,7 +72,10 @@ public class TestCloseLocalSideChunkedInput extends AbstractTestCloseLocalSide {
                         iter.next();
                     }
                 }
-            })).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            });
+            ctx.writeAndFlush(
+                    new CloseLocalSideMessage<ByteBuf>(ctx.alloc().buffer().writeBytes(lastChunk)))
+                    .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         }
     }
 
