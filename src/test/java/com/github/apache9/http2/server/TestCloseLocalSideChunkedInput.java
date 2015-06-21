@@ -72,7 +72,7 @@ public class TestCloseLocalSideChunkedInput extends AbstractTestCloseLocalSide {
 
     @Override
     protected Channel initServer() {
-        ServerBootstrap b = new ServerBootstrap().group(bossGroup, workerGroup)
+        return new ServerBootstrap().group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<Channel>() {
 
@@ -92,8 +92,7 @@ public class TestCloseLocalSideChunkedInput extends AbstractTestCloseLocalSide {
                                         }, true));
                     }
 
-                });
-        return b.bind(0).syncUninterruptibly().channel();
+                }).bind(0).syncUninterruptibly().channel();
     }
 
 }

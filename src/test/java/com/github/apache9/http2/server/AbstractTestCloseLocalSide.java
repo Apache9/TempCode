@@ -2,13 +2,9 @@ package com.github.apache9.http2.server;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -19,13 +15,9 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MetaData;
-import org.eclipse.jetty.http2.ErrorCode;
-import org.eclipse.jetty.http2.api.Session;
 import org.eclipse.jetty.http2.api.Stream;
-import org.eclipse.jetty.http2.client.HTTP2Client;
 import org.eclipse.jetty.http2.frames.HeadersFrame;
 import org.eclipse.jetty.http2.frames.PriorityFrame;
-import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.FuturePromise;
 import org.junit.After;
 import org.junit.Before;
@@ -34,23 +26,11 @@ import org.junit.Test;
 /**
  * @author zhangduo
  */
-public abstract class AbstractTestCloseLocalSide {
+public abstract class AbstractTestCloseLocalSide extends AbstractTestHttp2Server {
 
     protected List<byte[]> expectedChunkList;
 
     protected byte[] combinedChunkes;
-
-    protected EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-
-    protected EventLoopGroup workerGroup = new NioEventLoopGroup();
-
-    private Channel server;
-
-    private HTTP2Client client = new HTTP2Client();
-
-    private Session session;
-
-    protected abstract Channel initServer();
 
     @Before
     public void setUp() throws Exception {
@@ -63,26 +43,12 @@ public abstract class AbstractTestCloseLocalSide {
             bos.write(chunk);
         }
         combinedChunkes = bos.toByteArray();
-        server = initServer();
-        client.start();
-        int port = ((InetSocketAddress) server.localAddress()).getPort();
-        FuturePromise<Session> sessionPromise = new FuturePromise<>();
-        client.connect(new InetSocketAddress("127.0.0.1", port), new Session.Listener.Adapter(),
-                sessionPromise);
-        session = sessionPromise.get();
+        start();
     }
 
     @After
     public void tearDown() throws Exception {
-        if (session != null) {
-            session.close(ErrorCode.NO_ERROR.code, "", new Callback.Adapter());
-        }
-        if (server != null) {
-            server.close();
-        }
-        client.stop();
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        stop();
     }
 
     @Test
