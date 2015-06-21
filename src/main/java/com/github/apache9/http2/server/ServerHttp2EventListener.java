@@ -93,17 +93,26 @@ public class ServerHttp2EventListener extends Http2EventAdapter {
         return subChannel;
     }
 
-    @Override
-    public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers,
-            int padding, boolean endOfStream) throws Http2Exception {
+    private boolean writeInbound(int streamId, Object msg, boolean endOfStream)
+            throws Http2Exception {
         ServerHttp2StreamChannel subChannel = getSubChannel(streamId);
-        subChannel.writeInbound(headers);
         if (endOfStream) {
-            subChannel.closeRemoteSide();
+            subChannel.writeInbound(new LastMessage(msg));
+        } else {
+            subChannel.writeInbound(msg);
         }
         if (subChannel.config().isAutoRead()) {
             subChannel.read();
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    @Override
+    public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers,
+            int padding, boolean endOfStream) throws Http2Exception {
+        writeInbound(streamId, headers, endOfStream);
     }
 
     @Override
@@ -117,16 +126,9 @@ public class ServerHttp2EventListener extends Http2EventAdapter {
     public int onDataRead(ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding,
             boolean endOfStream) throws Http2Exception {
         int pendingBytes = data.readableBytes() + padding;
-        ServerHttp2StreamChannel subChannel = getSubChannel(streamId);
-        subChannel.writeInbound(data.retain());
-        if (endOfStream) {
-            subChannel.closeRemoteSide();
-        }
-        if (subChannel.config().isAutoRead()) {
-            subChannel.read();
+        if (writeInbound(streamId, data.retain(), endOfStream)) {
             return pendingBytes;
         } else {
-            subChannel.incrementPendingInboundBytes(pendingBytes);
             return 0;
         }
     }

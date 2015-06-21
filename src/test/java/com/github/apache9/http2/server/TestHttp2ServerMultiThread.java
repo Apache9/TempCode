@@ -53,10 +53,6 @@ public class TestHttp2ServerMultiThread extends AbstractTestHttp2Server {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Http2Headers msg) throws Exception {
-            ServerHttp2StreamChannel channel = (ServerHttp2StreamChannel) ctx.channel();
-            if (channel.remoteSideClosed()) {
-                channel.closeLocalSide();
-            }
             ctx.writeAndFlush(new DefaultHttp2Headers().status(HttpResponseStatus.OK.codeAsText()));
             ctx.pipeline().replace(this, "echo", new EchoHandler());
         }
@@ -68,9 +64,11 @@ public class TestHttp2ServerMultiThread extends AbstractTestHttp2Server {
         protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
             ServerHttp2StreamChannel channel = (ServerHttp2StreamChannel) ctx.channel();
             if (channel.remoteSideClosed()) {
-                channel.closeLocalSide();
+                ctx.writeAndFlush(new LastMessage(msg.retain()));
+            } else {
+                ctx.writeAndFlush(msg.retain());
             }
-            ctx.writeAndFlush(msg.retain());
+
         }
 
         @Override

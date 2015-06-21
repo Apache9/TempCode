@@ -1,3 +1,6 @@
+/**
+ * 
+ */
 package com.github.apache9.http2.server;
 
 import io.netty.buffer.ByteBuf;
@@ -7,11 +10,11 @@ import io.netty.handler.stream.ChunkedInput;
 /**
  * @author zhangduo
  */
-public class CloseLocalSideChunkedInput implements ChunkedInput<ByteBuf> {
+public class LastChunkedInput implements ChunkedInput<Object> {
 
     private final ChunkedInput<ByteBuf> in;
 
-    public CloseLocalSideChunkedInput(ChunkedInput<ByteBuf> in) {
+    public LastChunkedInput(ChunkedInput<ByteBuf> in) {
         this.in = in;
     }
 
@@ -26,12 +29,16 @@ public class CloseLocalSideChunkedInput implements ChunkedInput<ByteBuf> {
     }
 
     @Override
-    public ByteBuf readChunk(ChannelHandlerContext ctx) throws Exception {
+    public Object readChunk(ChannelHandlerContext ctx) throws Exception {
+        if (isEndOfInput()) {
+            return null;
+        }
         ByteBuf chunk = in.readChunk(ctx);
         if (isEndOfInput()) {
-            ((ServerHttp2StreamChannel) ctx.channel()).closeLocalSide();
+            return new LastMessage(chunk);
+        } else {
+            return chunk;
         }
-        return chunk;
     }
 
     @Override

@@ -52,8 +52,7 @@ public class TestHttp2Server extends AbstractTestHttp2Server {
                 ctx.writeAndFlush(new DefaultHttp2Headers().status(HttpResponseStatus.OK
                         .codeAsText()));
             } else {
-                ((ServerHttp2StreamChannel) ctx.channel()).closeLocalSide();
-                ctx.writeAndFlush(ReferenceCountUtil.retain(msg));
+                ctx.writeAndFlush(new LastMessage(ReferenceCountUtil.retain(msg)));
             }
         }
 

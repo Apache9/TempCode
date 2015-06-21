@@ -25,6 +25,8 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * @author zhangduo
  */
@@ -47,10 +49,6 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
     private final DefaultChannelConfig config;
 
     private final Queue<Object> inboundMessageQueue = new ArrayDeque<>();
-
-    private boolean lastInboundMessageAdded = false;
-
-    private boolean lastOutboundMessageAdded = false;
 
     private int pendingInboundBytes;
 
@@ -158,7 +156,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
             if (msg == null) {
                 break;
             }
-            if (lastInboundMessageAdded && inboundMessageQueue.isEmpty()) {
+            if (msg instanceof LastMessage) {
                 for (;;) {
                     State current = state.get();
                     if (current == State.CLOSED) {
@@ -170,6 +168,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
                         break;
                     }
                 }
+                msg = ((LastMessage) msg).get();
             }
             pipeline().fireChannelRead(msg);
         }
@@ -191,8 +190,8 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
             if (msg == null) {
                 break;
             }
-            boolean endOfStream;
-            if (lastOutboundMessageAdded && in.size() == 1) {
+            boolean endOfStream = msg instanceof LastMessage;
+            if (endOfStream) {
                 for (;;) {
                     State current = state.get();
                     if (current == State.CLOSED) {
@@ -204,9 +203,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
                         break;
                     }
                 }
-                endOfStream = true;
-            } else {
-                endOfStream = false;
+                msg = ((LastMessage) msg).get();
             }
             if (msg instanceof Http2Headers) {
                 encoder.writeHeaders(http2ConnHandlerCtx, stream.id(), (Http2Headers) msg, 0,
@@ -237,19 +234,17 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
         }
     }
 
-    public void closeRemoteSide() {
-        lastInboundMessageAdded = true;
-    }
+    private static final ImmutableSet<State> REMOTE_SIDE_CLOSED_STATES = ImmutableSet.of(
+            State.HALF_CLOSED_REMOTE, State.PRE_CLOSED, State.CLOSED);
 
     public boolean remoteSideClosed() {
-        return state.get() == State.HALF_CLOSED_REMOTE;
+        return REMOTE_SIDE_CLOSED_STATES.contains(state.get());
     }
 
-    public void closeLocalSide() {
-        lastOutboundMessageAdded = true;
-    }
+    private static final ImmutableSet<State> LOCAL_SIDE_CLOSED_STATES = ImmutableSet.of(
+            State.HALF_CLOSED_LOCAL, State.PRE_CLOSED, State.CLOSED);
 
     public boolean localSideClosed() {
-        return state.get() == State.HALF_CLOSED_LOCAL;
+        return LOCAL_SIDE_CLOSED_STATES.contains(state.get());
     }
 }
