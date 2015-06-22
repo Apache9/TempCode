@@ -42,6 +42,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.apache9.http2.Http2StreamChannel;
+import com.github.apache9.http2.LastMessage;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -62,7 +64,7 @@ public class TestHttp2ServerMultiThread extends AbstractTestHttp2Server {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-            ServerHttp2StreamChannel channel = (ServerHttp2StreamChannel) ctx.channel();
+            Http2StreamChannel channel = (Http2StreamChannel) ctx.channel();
             if (channel.remoteSideClosed()) {
                 ctx.writeAndFlush(new LastMessage(msg.retain()));
             } else {
@@ -96,11 +98,11 @@ public class TestHttp2ServerMultiThread extends AbstractTestHttp2Server {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ch.pipeline().addLast(
-                                ServerHttp2EventListener.create(ch,
-                                        new ChannelInitializer<ServerHttp2StreamChannel>() {
+                                ServerHttp2ConnectionHandler.create(ch,
+                                        new ChannelInitializer<Http2StreamChannel>() {
 
                                             @Override
-                                            protected void initChannel(ServerHttp2StreamChannel ch)
+                                            protected void initChannel(Http2StreamChannel ch)
                                                     throws Exception {
                                                 ch.pipeline().addLast(new DispatchHandler());
                                             }

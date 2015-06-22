@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.apache9.http2.server;
+package com.github.apache9.http2;
 
 /**
  * @author zhangduo

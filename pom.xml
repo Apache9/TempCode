@@ -88,7 +88,12 @@
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
             <artifactId>http2-client</artifactId>
-            <version>9.3.0.M2</version>
+            <version>9.3.0.v20150612</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>http2-server</artifactId>
+            <version>9.3.0.v20150612</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

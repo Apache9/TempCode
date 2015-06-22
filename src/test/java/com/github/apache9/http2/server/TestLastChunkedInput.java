@@ -37,6 +37,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.apache9.http2.Http2StreamChannel;
+import com.github.apache9.http2.LastChunkedInput;
+
 /**
  * @author zhangduo
  */
@@ -122,12 +125,11 @@ public class TestLastChunkedInput extends AbstractTestHttp2Server {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ch.pipeline().addLast(
-
-                                ServerHttp2EventListener.create(ch,
-                                        new ChannelInitializer<ServerHttp2StreamChannel>() {
+                                ServerHttp2ConnectionHandler.create(ch,
+                                        new ChannelInitializer<Http2StreamChannel>() {
 
                                             @Override
-                                            protected void initChannel(ServerHttp2StreamChannel ch)
+                                            protected void initChannel(Http2StreamChannel ch)
                                                     throws Exception {
                                                 ch.pipeline().addLast(new ChunkedWriteHandler(),
                                                         new ChunkedHandler(expectedChunkList));

@@ -1,4 +1,4 @@
-package com.github.apache9.http2.server;
+package com.github.apache9.http2;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.AbstractChannel;
@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * @author zhangduo
  */
-public class ServerHttp2StreamChannel extends AbstractChannel {
+public class Http2StreamChannel extends AbstractChannel {
 
     private static final ChannelMetadata METADATA = new ChannelMetadata(false);
 
@@ -60,7 +60,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
 
     private AtomicReference<State> state;
 
-    public ServerHttp2StreamChannel(Channel parent, Http2Stream stream) {
+    public Http2StreamChannel(Channel parent, Http2Stream stream) {
         super(parent);
         this.http2ConnHandlerCtx = parent.pipeline().context(Http2ConnectionHandler.class);
         Http2ConnectionHandler connHandler = (Http2ConnectionHandler) http2ConnHandlerCtx.handler();
@@ -70,7 +70,7 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
         this.remoteFlowController = connHandler.connection().remote().flowController();
         this.encoder = connHandler.encoder();
         this.config = new DefaultChannelConfig(this);
-        this.state = new AtomicReference<ServerHttp2StreamChannel.State>(State.OPEN);
+        this.state = new AtomicReference<Http2StreamChannel.State>(State.OPEN);
     }
 
     @Override
@@ -185,13 +185,14 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
             writePending = true;
             return;
         }
+        boolean flush = false;
         for (;;) {
             Object msg = in.current();
             if (msg == null) {
                 break;
             }
-            boolean endOfStream = msg instanceof LastMessage;
-            if (endOfStream) {
+            boolean endStream = msg instanceof LastMessage;
+            if (endStream) {
                 for (;;) {
                     State current = state.get();
                     if (current == State.CLOSED) {
@@ -207,16 +208,24 @@ public class ServerHttp2StreamChannel extends AbstractChannel {
             }
             if (msg instanceof Http2Headers) {
                 encoder.writeHeaders(http2ConnHandlerCtx, stream.id(), (Http2Headers) msg, 0,
-                        endOfStream, http2ConnHandlerCtx.newPromise());
+                        endStream, http2ConnHandlerCtx.newPromise());
             } else if (msg instanceof ByteBuf) {
                 ByteBuf data = (ByteBuf) msg;
-                encoder.writeData(http2ConnHandlerCtx, stream.id(), data.retain(), 0, endOfStream,
+                encoder.writeData(http2ConnHandlerCtx, stream.id(), data.retain(), 0, endStream,
                         http2ConnHandlerCtx.newPromise());
             } else {
                 throw new UnsupportedMessageTypeException(msg, Http2Headers.class, ByteBuf.class);
             }
             in.remove();
+            flush = true;
         }
+        if (flush) {
+            http2ConnHandlerCtx.channel().flush();
+        }
+    }
+    
+    public Http2Stream stream() {
+        return stream;
     }
 
     public void writeInbound(Object msg) {
