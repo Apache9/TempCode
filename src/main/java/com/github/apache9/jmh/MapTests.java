@@ -18,12 +18,9 @@
 package com.github.apache9.jmh;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -37,7 +34,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-@Measurement(iterations = 10, batchSize = 100000)
+@Measurement(iterations = 10)
 public class MapTests {
 
     private static final Object VAL = new Object();
