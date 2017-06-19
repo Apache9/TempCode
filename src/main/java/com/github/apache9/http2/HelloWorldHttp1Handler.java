@@ -6,16 +6,18 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpServerUpgradeHandler.UpgradeEvent;
+import io.netty.handler.codec.http.HttpUtil;
 
 /**
  * @author zhangduo
@@ -24,13 +26,14 @@ public class HelloWorldHttp1Handler extends SimpleChannelInboundHandler<HttpRequ
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-        if (HttpHeaderUtil.is100ContinueExpected(req)) {
+        if (HttpUtil.is100ContinueExpected(req)) {
             ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
-        boolean keepAlive = HttpHeaderUtil.isKeepAlive(req);
+        boolean keepAlive = HttpUtil.isKeepAlive(req);
 
         ByteBuf content = ctx.alloc().buffer();
         content.writeBytes(HelloWorldHttp2Handler.RESPONSE_BYTES.duplicate());
+        ByteBufUtil.writeAscii(content, " - via HTTP/1.1");
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, content);
         response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");

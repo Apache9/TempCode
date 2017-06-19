@@ -1,5 +1,9 @@
 package com.github.apache9.apns;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,15 +18,11 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * @author Apache9
@@ -41,13 +41,11 @@ public class ApnsProvider {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory
                 .getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init((KeyStore) null);
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory
-                .getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, password);
 
         SSLContext sslCtx = SSLContext.getInstance("TLS");
-        sslCtx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(),
-                null);
+        sslCtx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
         return sslCtx;
     }
 
@@ -60,26 +58,21 @@ public class ApnsProvider {
     }
 
     private static Request buildRequest(String token, String alert) throws IOException {
-        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"),
-                buildPayload(alert));
-        return new Request.Builder().url("https://api.push.apple.com:443/3/device/" + token)
-                .method("POST", body).addHeader("apns-expiration", "0")
-                .addHeader("apns-priority", "10")
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), buildPayload(alert));
+        return new Request.Builder().url("https://api.push.apple.com:443/3/device/" + token).method("POST", body)
+                .addHeader("apns-expiration", "0").addHeader("apns-priority", "10")
                 .addHeader("content-length", Long.toString(body.contentLength())).build();
     }
 
-    public static void main(String[] args)
-            throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException,
-            KeyStoreException, FileNotFoundException, CertificateException, IOException {
-        OkHttpClient client = new OkHttpClient();
-        client.setConnectionPool(ConnectionPool.getDefault());
+    public static void main(String[] args) throws NoSuchAlgorithmException, UnrecoverableKeyException,
+            KeyManagementException, KeyStoreException, FileNotFoundException, CertificateException, IOException {
         SSLContext sslCtx = createSSLContext(args[0], args[1].toCharArray());
-        client.setSslSocketFactory(sslCtx.getSocketFactory());
+        OkHttpClient client = new OkHttpClient.Builder().sslSocketFactory(sslCtx.getSocketFactory()).build();
         Request req = buildRequest(args[2], args[3]);
         Response resp = client.newCall(req).execute();
         System.out.println(resp);
         System.out.println(resp.body().string());
         resp.body().close();
-        client.getConnectionPool().evictAll();
+        client.connectionPool().evictAll();
     }
 }
