@@ -6,6 +6,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http2.DefaultHttp2DataFrame;
@@ -18,6 +19,7 @@ import io.netty.util.CharsetUtil;
 /**
  * @author zhangduo
  */
+@Sharable
 public class HelloWorldHttp2Handler extends SimpleChannelInboundHandler<Http2HeadersFrame> {
 
     static final ByteBuf RESPONSE_BYTES = unreleasableBuffer(copiedBuffer("Hello World", CharsetUtil.UTF_8));
