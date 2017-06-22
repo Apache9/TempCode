@@ -1,7 +1,12 @@
 package com.github.apache9.http2;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 
 import org.junit.AfterClass;
@@ -22,6 +27,8 @@ public class TestHelloWorld {
 
     private static int PORT = 29581;
 
+    private static EventLoopGroup GROUP;
+
     @BeforeClass
     public static void setUp() throws InterruptedException {
         SERVER_THREAD = new Thread(() -> {
@@ -33,12 +40,14 @@ public class TestHelloWorld {
         });
         SERVER_THREAD.start();
         Thread.sleep(2000);
+        GROUP = new NioEventLoopGroup();
     }
 
     @AfterClass
     public static void tearDown() throws InterruptedException {
         SERVER_THREAD.interrupt();
         SERVER_THREAD.join();
+        GROUP.shutdownGracefully().sync();
     }
 
     @Test
@@ -47,11 +56,16 @@ public class TestHelloWorld {
                 .build();
         Request req = new Request.Builder().url("http://localhost:" + PORT).build();
         Response resp = client.newCall(req).execute();
-        assertTrue(resp.body().string().contains("HTTP/1.1"));
+        String msg = resp.body().string();
+        System.out.println(msg);
+        assertTrue(msg.contains("HTTP/1.1"));
     }
 
     @Test
-    public void testHttp2() {
-
+    public void testHttp2() throws Exception {
+        Http2Client client = new Http2Client(GROUP, new InetSocketAddress("localhost", PORT));
+        String msg = client.hello();
+        System.out.println(msg);
+        assertTrue(msg.contains("HTTP/2"));
     }
 }
