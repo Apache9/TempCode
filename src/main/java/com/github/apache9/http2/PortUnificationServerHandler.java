@@ -1,14 +1,12 @@
 package com.github.apache9.http2;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http2.Http2CodecBuilder;
 import io.netty.handler.codec.http2.Http2CodecUtil;
-
-import java.util.List;
 
 /**
  * A port unification handler to support HTTP/1.1 and HTTP/2 on the same port.
@@ -22,11 +20,11 @@ public class PortUnificationServerHandler extends ByteToMessageDecoder {
     private static final int MAGIC_HEADER_LENGTH = 3;
 
     private void configureHttp1(ChannelHandlerContext ctx) {
-        ctx.pipeline().addLast(new HttpServerCodec(), new HelloWorldHttp1Handler());
+        //ctx.pipeline().addLast(new HttpServerCodec(), new HelloWorldHttp1Handler());
     }
 
     private void configureHttp2(ChannelHandlerContext ctx) {
-        ctx.pipeline().addLast(new Http2CodecBuilder(true, new HelloWorldHttp2Handler()).build());
+        //ctx.pipeline().addLast(new Http2CodecBuilder(true, new HelloWorldHttp2Handler()).build());
     }
 
     @Override
