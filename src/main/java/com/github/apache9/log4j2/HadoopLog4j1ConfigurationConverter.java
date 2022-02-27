@@ -36,7 +36,7 @@ public class HadoopLog4j1ConfigurationConverter {
     }
 
     enum AppenderType {
-        NULL, CONSOLE, ROLLING, DAILY_ROLLING, CUSTOMIZED
+        NULL, CONSOLE, FILE, ROLLING, DAILY_ROLLING, CUSTOMIZED
     }
 
     private static void convertConsole(PrintWriter writer, String name, String property, String value,
@@ -54,6 +54,13 @@ public class HadoopLog4j1ConfigurationConverter {
         default:
             throw new RuntimeException("Unknown console appender target: " + value);
         }
+    }
+
+    private static void convertFile(PrintWriter writer, String name, String property, String value, boolean inComment) {
+        if (!property.equals("File")) {
+            throw new RuntimeException("Unknown file appender property: " + property);
+        }
+        println(writer, "appender." + name + ".fileName = " + value, inComment);
     }
 
     private static void convertRolling(PrintWriter writer, String name, String property, String value,
@@ -115,6 +122,11 @@ public class HadoopLog4j1ConfigurationConverter {
                 println(writer, "appender." + nameAndProperty + ".name = " + nameAndProperty, inComment);
                 println(writer, "appender." + nameAndProperty + ".type = Console", inComment);
                 break;
+            case "org.apache.log4j.FileAppender":
+                appenderTypes.put(nameAndProperty, AppenderType.FILE);
+                println(writer, "appender." + nameAndProperty + ".name = " + nameAndProperty, inComment);
+                println(writer, "appender." + nameAndProperty + ".type = File", inComment);
+                break;
             case "org.apache.log4j.RollingFileAppender":
                 appenderTypes.put(nameAndProperty, AppenderType.ROLLING);
                 println(writer, "appender." + nameAndProperty + ".name = " + nameAndProperty, inComment);
@@ -140,7 +152,7 @@ public class HadoopLog4j1ConfigurationConverter {
         if (type == null) {
             throw new RuntimeException("Unknown appender: " + key);
         }
-        switch(property) {
+        switch (property) {
         case "layout":
             if (value.equals("org.apache.log4j.PatternLayout")) {
                 println(writer, "appender." + name + ".layout.type = PatternLayout", inComment);
@@ -166,6 +178,9 @@ public class HadoopLog4j1ConfigurationConverter {
             throw new RuntimeException("Unknown null appender property: " + key);
         case CONSOLE:
             convertConsole(writer, name, property, value, inComment);
+            break;
+        case FILE:
+            convertFile(writer, name, property, value, inComment);
             break;
         case ROLLING:
             convertRolling(writer, name, property, value, inComment);
